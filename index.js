@@ -76,8 +76,11 @@ async function run() {
 
     // collection on which to run the operation
     const doctorsCollections = client.db('eHospital').collection('doctors');
-    const bookingsCollections = client.db('eHospital').collection('bookings');
+    const bookingsCollections = client.db('eHospital').collection('bookings'); // booking = appoint
     const usersCollections = client.db('eHospital').collection('users');
+    const ambulanceBookingsCollections = client
+      .db('eHospital')
+      .collection('ambulanceBookings');
 
     /* find all doctors */
     app.get('/doctors', async (req, res) => {
@@ -86,20 +89,52 @@ async function run() {
     });
 
     /* Booking cart section  */
-    //get Booking cart items
+    // Get Appointment Booking cart items
     app.get('/bookings', async (req, res) => {
-      const email = req.query.email;
-      const query = { email: email };
-      const result = await bookingsCollections.find(query).toArray(); //to array use korle data gula arry formate a show korebe
-      res.send(result);
+      const email = req.query.email; // get 'email' from query parameter
+      let query = {}; // default empty query (means fetch all bookings)
+
+      // If email is provided, filter bookings by email
+      if (email) {
+        query = { email: email };
+      }
+
+      const result = await bookingsCollections.find(query).toArray(); // fetch bookings and convert to array
+      res.send(result); // send bookings back to frontend
     });
-    // Add booking item
+
+    // Add Appointment booking item
     app.post('/bookings', async (req, res) => {
       // res.send('booking ui');
       const bookingItem = req.body;
       const result = await bookingsCollections.insertOne(bookingItem);
       res.send(result);
     });
+
+    // add ambulance bookings item
+    app.post('/ambulancebookings', async (req, res) => {
+      // res.send('ambulance');
+      const ambulanceBookingItem = req.body;
+      const result = await ambulanceBookingsCollections.insertOne(
+        ambulanceBookingItem
+      );
+      res.send(result);
+    });
+
+    // Get all ambulance bookings
+    app.get('/ambulancebookings', async (req, res) => {
+      const email = req.query.email; // get 'email' from query parameter
+      let query = {}; // default query (empty) to fetch all bookings
+
+      // If email is provided, filter by email
+      if (email) {
+        query = { email: email };
+      }
+
+      const result = await ambulanceBookingsCollections.find(query).toArray(); // fetch bookings as an array
+      res.send(result); // send the fetched bookings to frontend
+    });
+
     // ✅ Dashboard: Get all bookings for admin panel
     app.get('/dashboard/bookings', async (req, res) => {
       try {
